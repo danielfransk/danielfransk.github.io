@@ -1,8 +1,92 @@
 <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MediaHub iFrame Test</title>
+    </head>
+    <body>
+        <h1>AdmiralCloud: Example Connect-MH standalone DEV</h1>
 
-<html>
-<body>
-<iframe src="https://ccdaniel.staffbase.com/" title="Staffbase"></iframe>
+        <div class="connectClientUser">
+            <label for="inputEmail">Email:</label>
+            <input type="text" id="inputEmail" value="support+0a97d8cb-089c-43b8-a826-7df8ecc736d0@admiralcloud.com" />
+            <br />
+            <label for="inputFirstname">Firstname:</label>
+            <input type="text" id="inputFirstname" value="Auth User" />
+            <br />
+            <label for="inputLastname">Lastname:</label>
+            <input type="text" id="inputLastname" value="MediaHub" />
+            <br />
+        </div>
 
-</body>
+        <button onClick="openMH()">Open MH</button>
+
+        <div id="status"></div>
+
+        <div id="iframeContainer"></div>
+
+        <script>
+            const AUTH_URL = 'https://localhost/authMH'; //Hier die Location zum Auth-Skript anpassen
+            const IFRAME_URL = 'https://wpp.admiralcloud.com/mediathek-pne-iframe/';
+
+            async function openMH() {
+                try {
+                    document.getElementById('iframeContainer').innerHTML = '';
+                    document.getElementById('status').innerText = 'Logging in...';
+                    const code = await loadAuthCode();
+                    openIframe(IFRAME_URL + '?code=' + code);
+                    document.getElementById('status').innerText = '';
+                } catch (e) {
+                    console.error(e);
+                    document.getElementById('status').innerText = 'ERROR see JS Console';
+                }
+            }
+
+            async function loadAuthCode() {
+                const email = document.getElementById('inputEmail').value;
+                const firstname = document.getElementById('inputFirstname').value;
+                const lastname = document.getElementById('inputLastname').value;
+
+                const resp = await fetch(AUTH_URL, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        callbackUrl: IFRAME_URL,
+                        email,
+                        firstname,
+                        lastname,
+                        group,
+                    }),
+                });
+                const data = await resp.json();
+
+                return data.code;
+            }
+
+            function calculateDevice() {
+                return btoa(
+                    JSON.stringify([
+                        screen.pixelDepth,
+                        screen.colorDepth,
+                        // screen.availWidth, // maybe browser specific dunno
+                        // screen.availHeight,
+                        screen.width,
+                        screen.height,
+                        navigator.platform,
+                    ]),
+                );
+            }
+
+            function openIframe(iframeURL) {
+                document.getElementById('iframeContainer').innerHTML = `
+                    <iframe src="${iframeURL}" frameborder="0" style="border: solid 1px red; width: 1400px; height: 5000px"></iframe>
+                `;
+            }
+        </script>
+    </body>
 </html>
